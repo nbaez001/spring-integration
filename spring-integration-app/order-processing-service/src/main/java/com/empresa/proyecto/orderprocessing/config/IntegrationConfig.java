@@ -2,16 +2,16 @@ package com.empresa.proyecto.orderprocessing.config;
 
 import com.empresa.proyecto.orderprocessing.model.Order;
 import com.empresa.proyecto.orderprocessing.model.OrderItem;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.Router;
-import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.annotation.*;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.json.ObjectToJsonTransformer;
+import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.MessageBuilder;
@@ -37,6 +37,11 @@ public class IntegrationConfig {
 
     @Bean
     public MessageChannel processedItemsChannel() {
+        return new DirectChannel();
+    }
+
+    @Bean
+    public MessageChannel deliveriesChannel() {
         return new DirectChannel();
     }
 
@@ -104,7 +109,7 @@ public class IntegrationConfig {
         return itemMessage;
     }
 
-    @Aggregator(inputChannel = "processedItemsChannel", outputChannel = "notificationChannel")
+    @Aggregator(inputChannel = "processedItemsChannel", outputChannel = "deliveriesChannel")
     public Order aggregateOrderItems(List<Message<OrderItem>> messages) {
         log.info("Aggregating order items: " + messages.toString());
 
@@ -122,8 +127,16 @@ public class IntegrationConfig {
         return new Order(orderId, items);
     }
 
-    @ServiceActivator(inputChannel = "notificationChannel")
-    public void printProcessedItems(Message<Order> order) {
-        log.info("Printing item: " + order.getPayload());
+    @Bean
+    @Transformer(inputChannel = "deliveriesChannel", outputChannel = "notificationChannel")
+    public ObjectToJsonTransformer transformTojson() {
+        return new ObjectToJsonTransformer(getMapper());
     }
+
+    @Bean
+    public Jackson2JsonObjectMapper getMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        return new Jackson2JsonObjectMapper(mapper);
+    }
+
 }
