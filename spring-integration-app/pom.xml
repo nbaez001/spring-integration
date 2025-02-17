@@ -12,6 +12,7 @@
     <modules>
         <module>simple-programming-1-app</module>
         <module>intertech-1-app</module>
+        <module>order-processing-service</module>
     </modules>
 
     <parent>
