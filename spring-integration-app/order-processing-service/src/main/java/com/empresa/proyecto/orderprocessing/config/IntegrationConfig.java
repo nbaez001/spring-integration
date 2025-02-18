@@ -51,17 +51,17 @@ public class IntegrationConfig {
     }
 
     @Bean
-    public MessageChannel electronicsChannel() {
+    public MessageChannel electronicItemsChannel() {
         return new DirectChannel();
     }
 
     @Bean
-    public MessageChannel clothingChannel() {
+    public MessageChannel clothingItemsChannel() {
         return new DirectChannel();
     }
 
     @Bean
-    public MessageChannel groceriesChannel() {
+    public MessageChannel groceryItemsChannel() {
         return new DirectChannel();
     }
 
@@ -84,26 +84,26 @@ public class IntegrationConfig {
         OrderItem item = itemMessage.getPayload();
         log.info("routing order item with ID: {}", item.getItemId());
         return switch (item.getItemType()) {
-            case "ELECTRONICS" -> "electronicsChannel";
-            case "CLOTHING" -> "clothingChannel";
-            case "GROCERIES" -> "groceriesChannel";
+            case "ELECTRONICS" -> "electronicItemsChannel";
+            case "CLOTHING" -> "clothingItemsChannel";
+            case "GROCERIES" -> "groceryItemsChannel";
             default -> throw new IllegalArgumentException("Unknown item type: " + item.getItemType());
         };
     }
 
-    @ServiceActivator(inputChannel = "electronicsChannel", outputChannel = "processedItemsChannel")
+    @ServiceActivator(inputChannel = "electronicItemsChannel", outputChannel = "processedItemsChannel")
     public Message<OrderItem> processElectronicsOrder(Message<OrderItem> itemMessage) {
         log.info("Processing electronics item: " + itemMessage.getPayload().getItemId());
         return itemMessage;
     }
 
-    @ServiceActivator(inputChannel = "clothingChannel", outputChannel = "processedItemsChannel")
+    @ServiceActivator(inputChannel = "clothingItemsChannel", outputChannel = "processedItemsChannel")
     public Message<OrderItem> processClothingOrder(Message<OrderItem> itemMessage) {
         log.info("Processing clothing item: " + itemMessage.getPayload().getItemId());
         return itemMessage;
     }
 
-    @ServiceActivator(inputChannel = "groceriesChannel", outputChannel = "processedItemsChannel")
+    @ServiceActivator(inputChannel = "groceryItemsChannel", outputChannel = "processedItemsChannel")
     public Message<OrderItem> processGroceriesOrder(Message<OrderItem> itemMessage) {
         log.info("Processing groceries item: " + itemMessage.getPayload().getItemId());
         return itemMessage;
